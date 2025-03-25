@@ -26,9 +26,6 @@ class Weights(torch.nn.Module):
         self.tau = tau
         self.tau_step = tau_step
 
-    def __repr__(self):
-        return self.deep_weights.data.item()
-
     def forward(self,):
         if self.tau > 0.01:
             self.tau -= self.tau_step

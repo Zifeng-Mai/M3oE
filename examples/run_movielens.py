@@ -167,10 +167,10 @@ def main(args):
     
     print(f'test auc: {total_auc} | test logloss: {total_logloss}')
 
-    print(f"exp_d: {ctr_trainer.model._weight_exp_d}")
-    print(f"exp_t: {ctr_trainer.model._weight_exp_t}")
-    print(f"bal_d: {ctr_trainer.model._weight_bal_d}")
-    print(f"bal_t: {ctr_trainer.model._weight_bal_t}")
+    print(f"exp_d: {ctr_trainer.model._weight_exp_d.deep_weights.data}")
+    print(f"exp_t: {ctr_trainer.model._weight_exp_t.deep_weights.data}")
+    print(f"bal_d: {ctr_trainer.model._weight_bal_d.deep_weights.data}")
+    print(f"bal_t: {ctr_trainer.model._weight_bal_t.deep_weights.data}")
     
     # save csv file
     assert len(logloss_list) == domain_num*task_num
