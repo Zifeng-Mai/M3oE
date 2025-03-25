@@ -166,6 +166,11 @@ def main(args):
     logloss_list, auc_list, total_logloss, total_auc = ctr_trainer.evaluate_multi_domain(ctr_trainer.model, test_dataloader, domain_num, task_num=task_num)
     
     print(f'test auc: {total_auc} | test logloss: {total_logloss}')
+
+    print(f"exp_d: {ctr_trainer.model._weight_exp_d}")
+    print(f"exp_t: {ctr_trainer.model._weight_exp_t}")
+    print(f"bal_d: {ctr_trainer.model._weight_bal_d}")
+    print(f"bal_t: {ctr_trainer.model._weight_bal_t}")
     
     # save csv file
     assert len(logloss_list) == domain_num*task_num
