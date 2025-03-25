@@ -1,6 +1,3 @@
-mkdir output
-
-mkdir model_para
 
 python run_movielens.py --seed 2022 
 # python run_movielens.py --seed 2023 
