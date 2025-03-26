@@ -130,7 +130,7 @@ class CTRTrainer(object):
 
     def update_bias(self, gate_values):
         gate_values = gate_values.mean(dim=1) # [domain_num*task_num, expert_num]
-        mean_gate_values = gate_values.mean(dim=-1)
+        mean_gate_values = gate_values.mean(dim=-1).unsqueeze(-1)
         gate_values = gate_values - mean_gate_values
         grad = gate_values.sign()
         self.model.gating_bias += self.bias_lr * grad
