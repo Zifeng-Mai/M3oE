@@ -159,6 +159,7 @@ class MDMTRec(nn.Module):
         self.gate = nn.ModuleList(
             [Gating(self.fcn_dim[0], expert_num, topk) for _ in range(domain_num*task_num)]
         )
+        self.register_buffer("gating_bias", torch.zeros(domain_num*task_num, expert_num))
 
         self.tower = nn.ModuleList()
         for d in range(domain_num*task_num):
@@ -189,9 +190,8 @@ class MDMTRec(nn.Module):
             emb = torch.where(mask[i].unsqueeze(1).to(_device), _output, emb)
         emb = self.star_mlp(emb)+skip
         
-        gate_value = [self.gate[i](emb.detach()).unsqueeze(1) for i in range(self.task_num*self.domain_num)] # [domain_num*task_num, batch_size, 1, expert_num]
+        gate_value = [self.gate[i](emb.detach()).unsqueeze(1)+self.gating_bias[i] for i in range(self.task_num*self.domain_num)] # [domain_num*task_num, batch_size, 1, expert_num]
         
-
         out = [] # batch_size, expert_num, embedding_size
         for i in range(self.expert_num):
             domain_input = self.expert[i](emb)
@@ -240,7 +240,4 @@ class MDMTRec(nn.Module):
             for d in range(self.domain_num):
                 result[:, t] = torch.where(mask[d], output[:, t*self.domain_num+d], result[:, t])
         
-        if test_flag:
-            return result, torch.stack(gate_value, dim=0).squeeze(-2)
-        else:
-            return result
+        return result, torch.stack(gate_value, dim=0).squeeze(-2)

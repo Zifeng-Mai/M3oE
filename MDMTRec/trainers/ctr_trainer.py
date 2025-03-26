@@ -31,6 +31,7 @@ class CTRTrainer(object):
         optimizer_params_darts=None,
         scheduler_fn=None,
         scheduler_params=None,
+        bias_lr=1e-3,
         n_epoch=10,
         earlystop_patience=10,
         device="cpu",
@@ -64,6 +65,7 @@ class CTRTrainer(object):
         self.n_epoch = n_epoch
         self.early_stopper = EarlyStopper(patience=earlystop_patience)
         self.model_path = model_path
+        self.bias_lr = bias_lr
 
     def train_one_epoch(self, data_loader, domain_num, task_num, log_interval=10):
         self.model.train()
@@ -78,7 +80,7 @@ class CTRTrainer(object):
         # [[[d0t0], [d1t0], [d2t0]], [[d0t1], [d1t1], [d2t1]]] T*D
         for i, (x_dict, y) in enumerate(tk0):
             x_dict, y = x_dict.transpose(0, 1).to(self.device), y.to(self.device)
-            y_pred = self.model(x_dict)
+            y_pred, gate_values = self.model(x_dict)
             y_pred = y_pred.to(self.device)
 
             if not (domain_num == 3 and task_num == 2):
@@ -139,7 +141,8 @@ class CTRTrainer(object):
                 _val_x, _val_y = next(valid_data_iter)
 
             _val_x, _val_y = _val_x.transpose(0, 1).to(self.device), _val_y.to(self.device)
-            _y_pred = self.model(_val_x).to(self.device)
+            _y_pred, _ = self.model(_val_x)
+            _y_pred = _y_pred.to(self.device)
             _loss = self.criterion(_y_pred, _val_y.float())
             self.model.zero_grad()
             _loss.backward()
@@ -217,7 +220,6 @@ class CTRTrainer(object):
                 else:
                     targets.extend(y.squeeze(1).tolist())
                     predicts.extend(y_pred.squeeze(1).tolist())
-            print(gate_values.shape)
             gate_values = gate_values.mean(dim=1)
             print(gate_values)
             # gate_values = pd.concat(gate_values)

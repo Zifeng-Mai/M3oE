@@ -159,6 +159,9 @@ def main(args):
     print(model)
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f'trainable params: {trainable_params}')
+    for name, param in model.named_parameters():
+        print(f"{name}: {param.shape}")
+    assert False
     
     ctr_trainer = CTRTrainer(model, optimizer_params={"lr": args.learning_rate, "weight_decay": args.weight_decay}, optimizer_params_darts= {"lr": args.learning_rate_darts, "weight_decay": args.weight_decay}, n_epoch=args.epoch, earlystop_patience=10, device=args.device, model_path=args.save_dir+str(uuid.uuid4()),scheduler_params={"step_size": 4,"gamma": 0.85})
     #scheduler_fn=torch.optim.lr_scheduler.StepLR,scheduler_params={"step_size": 2,"gamma": 0.8},
