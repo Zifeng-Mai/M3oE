@@ -123,10 +123,7 @@ class CTRTrainer(object):
                 tk0.set_postfix(loss=total_loss / log_interval)
                 total_loss = 0
             
-            print(self.model.gating_bias)
             self.update_bias(gate_values)
-            print(self.model.gating_bias)
-            assert False
 
     def update_bias(self, gate_values):
         gate_values = gate_values.mean(dim=1) # [domain_num*task_num, expert_num]
