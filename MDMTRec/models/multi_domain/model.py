@@ -122,7 +122,15 @@ class MDMTRec(nn.Module):
         for d in range(task_num):
             self.task_expert.append(MLP_N(self.fcn_dim))
         
-        self.gate = torch.nn.ModuleList([torch.nn.Sequential(torch.nn.Linear(self.fcn_dim[0], expert_num), torch.nn.Softmax(dim=1)) for i in range(domain_num*task_num)])
+        self.gate = torch.nn.ModuleList(
+            [
+                torch.nn.Sequential(
+                    torch.nn.Linear(self.fcn_dim[0], expert_num), 
+                    torch.nn.Softmax(dim=1)
+                ) 
+                for i in range(domain_num*task_num)
+            ]
+        )
         
         self.tower = nn.ModuleList()
         for d in range(domain_num*task_num):
@@ -203,5 +211,8 @@ class MDMTRec(nn.Module):
         for t in range(self.task_num):
             for d in range(self.domain_num):
                 result[:, t] = torch.where(mask[d], output[:, t*self.domain_num+d], result[:, t])
-                
-        return result 
+        
+        if test_flag:
+            return result
+        else:
+            return result, gate_value

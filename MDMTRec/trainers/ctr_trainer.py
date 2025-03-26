@@ -184,17 +184,17 @@ class CTRTrainer(object):
         # [[[d0t0], [d1t0], [d2t0]], [[d0t1], [d1t1], [d2t1]]] T*D
         with torch.no_grad():
             tk0 = tqdm.tqdm(data_loader, desc="predict", smoothing=0, mininterval=1.0)
-            # gate_values = list()
+            gate_values = list()
             for i, (x_dict, y) in enumerate(tk0):
                 domain_mask_list = []
                 
                 x_dict, y = x_dict.transpose(0, 1).to(self.device), y.to(self.device)
                 domain_id = x_dict[-1, :].clone().detach()
 
-                y_pred = model(x_dict)
-                # y_pred, _gate = model(x_dict, test_flag=True)
+                # y_pred, _gate = model(x_dict)
+                y_pred, _gate = model(x_dict, test_flag=True)
                 y_pred = y_pred.to(self.device)
-                # gate_values.append(_gate)
+                gate_values.append(_gate)
                 
                 
                 for d in range(domain_num):
@@ -214,9 +214,9 @@ class CTRTrainer(object):
                 else:
                     targets.extend(y.squeeze(1).tolist())
                     predicts.extend(y_pred.squeeze(1).tolist())   
-            # gate_values = pd.concat(gate_values)
-            # gate_values.to_csv('gate.csv', index=False)
-            # print(f'saved to gate.csv with shape of {gate_values.shape}.')
+            gate_values = pd.concat(gate_values)
+            gate_values.to_csv('gate.csv', index=False)
+            print(f'saved to gate.csv with shape of {gate_values.shape}.')
         logloss_list, auc_list = list(), list()
         for t in range(task_num):
             for d in range(domain_num):
