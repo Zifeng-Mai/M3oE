@@ -193,7 +193,8 @@ class CTRTrainer(object):
 
                 # y_pred, _gate = model(x_dict)
                 y_pred, _gate = model(x_dict, test_flag=True)
-                print(_gate.shape)
+                print(len(_gate))
+                print(_gate[0].shape)
                 assert False
                 y_pred = y_pred.to(self.device)
                 gate_values.append(_gate)
