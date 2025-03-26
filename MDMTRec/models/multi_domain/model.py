@@ -71,11 +71,35 @@ class MLP_N(nn.Module):
             output = f(output)
         return output
 
+class Gating(nn.Module):
+    def __init__(self, emb_dim, n_experts, topk=-1) -> None:
+        if topk > n_experts:
+            raise ValueError(f"topk({topk}) must be smaller than n_experts({n_experts})")
+        
+        super(Gating, self).__init__()
+        self.topk = topk
+        self.gating = nn.Linear(emb_dim, n_experts)
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, emb):
+        gate_values = self.gating(emb)
+        if self.topk != -1:
+            gate_mask = self.gen_topk_mask(gate_values, self.topk)
+            gate_values = gate_values.masked_fill(gate_mask==0., float('-inf'))
+        gate_weights = self.softmax(gate_values)
+        return gate_weights
+
+    def gen_topk_mask(self, gate_values, k):
+        _, topk_indices = torch.topk(gate_values, k, dim=-1)
+        mask = torch.zeros_like(gate_values)
+        mask.scatter_(-1, topk_indices, 1)
+        return mask
+
 
 class MDMTRec(nn.Module):
     # add domain-specific expert based on MTMD
     # gate(shared expert) + task-specific + domain-specifics
-    def __init__(self, features, domain_num, task_num, fcn_dims, expert_num, exp_d, exp_t, bal_d, bal_t, tau=1, tau_step=0.00005, softmax_type=3):
+    def __init__(self, features, domain_num, task_num, fcn_dims, expert_num, exp_d, exp_t, bal_d, bal_t, tau=1, tau_step=0.00005, softmax_type=3, topk=-1):
         super().__init__()
         self.features = features
         self.input_dim = sum([fea.embed_dim for fea in features])
@@ -122,16 +146,20 @@ class MDMTRec(nn.Module):
         for d in range(task_num):
             self.task_expert.append(MLP_N(self.fcn_dim))
         
-        self.gate = torch.nn.ModuleList(
-            [
-                torch.nn.Sequential(
-                    torch.nn.Linear(self.fcn_dim[0], expert_num), 
-                    torch.nn.Softmax(dim=1)
-                ) 
-                for i in range(domain_num*task_num)
-            ]
-        )
+        # self.gate = torch.nn.ModuleList(
+        #     [
+        #         torch.nn.Sequential(
+        #             torch.nn.Linear(self.fcn_dim[0], expert_num), 
+        #             torch.nn.Softmax(dim=1)
+        #         ) 
+        #         for i in range(domain_num*task_num)
+        #     ]
+        # )
         
+        self.gate = nn.ModuleList(
+            [Gating(self.fcn_dim[0], expert_num, topk) for _ in range(domain_num*task_num)]
+        )
+
         self.tower = nn.ModuleList()
         for d in range(domain_num*task_num):
             domain_specific = nn.Sequential(

@@ -153,7 +153,8 @@ def main(args):
     train_dataloader, val_dataloader, test_dataloader = dg.generate_dataloader(x_val=x_val, y_val=y_val, x_test=x_test, y_test=y_test, batch_size=args.batch_size)
     
     
-    model = MDMTRec(dense_feas + sparse_feas, domain_num=domain_num, task_num=task_num, fcn_dims=fcn_dims, expert_num=args.expert_num, exp_d=args.exp_d, exp_t=args.exp_t, bal_d=args.bal_d, bal_t=args.bal_t)
+    model = MDMTRec(dense_feas + sparse_feas, domain_num=domain_num, task_num=task_num, fcn_dims=fcn_dims, expert_num=args.expert_num, exp_d=args.exp_d, exp_t=args.exp_t, bal_d=args.bal_d, bal_t=args.bal_t, 
+                    topk=args.topk)
         
     print(model)
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -220,6 +221,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_dir', default='./model_para/')
     parser.add_argument('--seed', type=int, default=2022)
     parser.add_argument('--expert_num', type=int, default=4)
+    parser.add_argument('--topk', type=int, default=-1)
     parser.add_argument('--exp_d', type=float, default=1, help='weight of domain expert')
     parser.add_argument('--exp_t', type=float, default=1, help='weight of task expert')
     parser.add_argument('--bal_d', type=float, default=1, help='weight of domain expert d, others are 1-bal_d')
