@@ -122,6 +122,18 @@ class CTRTrainer(object):
             if (i + 1) % log_interval == 0:
                 tk0.set_postfix(loss=total_loss / log_interval)
                 total_loss = 0
+            
+            print(self.model.gating_bias)
+            self.update_bias(gate_values)
+            print(self.model.gating_bias)
+            assert False
+
+    def update_bias(self, gate_values):
+        gate_values = gate_values.mean(dim=1) # [domain_num*task_num, expert_num]
+        mean_gate_values = gate_values.mean(dim=-1)
+        gate_values = gate_values - mean_gate_values
+        grad = gate_values.sign()
+        self.model.gating_bias += self.bias_lr * grad
 
     def fit(self, train_dataloader, exp_d, exp_t, bal_d, bal_t, domain_num, task_num, val_dataloader=None):
         valid_data_iter = iter(train_dataloader)
