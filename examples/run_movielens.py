@@ -163,7 +163,8 @@ def main(args):
     #     print(f"{name}: {param.shape}")
     # assert False
     
-    ctr_trainer = CTRTrainer(model, optimizer_params={"lr": args.learning_rate, "weight_decay": args.weight_decay}, optimizer_params_darts= {"lr": args.learning_rate_darts, "weight_decay": args.weight_decay}, n_epoch=args.epoch, earlystop_patience=10, device=args.device, model_path=args.save_dir+str(uuid.uuid4()),scheduler_params={"step_size": 4,"gamma": 0.85})
+    ctr_trainer = CTRTrainer(model, optimizer_params={"lr": args.learning_rate, "weight_decay": args.weight_decay}, optimizer_params_darts= {"lr": args.learning_rate_darts, "weight_decay": args.weight_decay}, n_epoch=args.epoch, earlystop_patience=10, device=args.device, model_path=args.save_dir+str(uuid.uuid4()),scheduler_params={"step_size": 4,"gamma": 0.85},
+                             bias_lr=args.bias_lr)
     #scheduler_fn=torch.optim.lr_scheduler.StepLR,scheduler_params={"step_size": 2,"gamma": 0.8},
 
     ctr_trainer.fit(train_dataloader, val_dataloader=val_dataloader, exp_d=args.exp_d, exp_t=args.exp_t, bal_d=args.bal_d, bal_t=args.bal_t, domain_num=domain_num, task_num=task_num)
@@ -216,6 +217,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_name', default='MDMTRec')
     parser.add_argument('--epoch', type=int, default=50) 
     parser.add_argument('--learning_rate', type=float, default=1e-2)
+    parser.add_argument('--bias_lr', type=float, default=1e-3)
     parser.add_argument('--learning_rate_darts', type=float, default=1e-3)
     parser.add_argument('--batch_size', type=int, default=4096*10)  
     parser.add_argument('--weight_decay', type=float, default=1e-5)
@@ -224,7 +226,7 @@ if __name__ == '__main__':
     parser.add_argument('--save_dir', default='./model_para/')
     parser.add_argument('--seed', type=int, default=2022)
     parser.add_argument('--expert_num', type=int, default=4)
-    parser.add_argument('--topk', type=int, default=-1)
+    parser.add_argument('--topk', type=int, default=1)
     parser.add_argument('--exp_d', type=float, default=1, help='weight of domain expert')
     parser.add_argument('--exp_t', type=float, default=1, help='weight of task expert')
     parser.add_argument('--bal_d', type=float, default=1, help='weight of domain expert d, others are 1-bal_d')
