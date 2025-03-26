@@ -81,10 +81,10 @@ class Gating(nn.Module):
         self.gating = nn.Linear(emb_dim, n_experts)
         self.softmax = nn.Softmax(dim=-1)
 
-    def forward(self, emb):
+    def forward(self, emb, bias):
         gate_values = self.gating(emb)
         if self.topk != -1:
-            gate_mask = self.gen_topk_mask(gate_values, self.topk)
+            gate_mask = self.gen_topk_mask(gate_values+bias, self.topk)
             gate_values = gate_values.masked_fill(gate_mask==0., float('-inf'))
         gate_weights = self.softmax(gate_values)
         return gate_weights
@@ -190,7 +190,7 @@ class MDMTRec(nn.Module):
             emb = torch.where(mask[i].unsqueeze(1).to(_device), _output, emb)
         emb = self.star_mlp(emb)+skip
         
-        gate_value = [self.gate[i](emb.detach()).unsqueeze(1)+self.gating_bias[i] for i in range(self.task_num*self.domain_num)] # [domain_num*task_num, batch_size, 1, expert_num]
+        gate_value = [self.gate[i](emb.detach(), self.gating_bias[i]).unsqueeze(1) for i in range(self.task_num*self.domain_num)] # [domain_num*task_num, batch_size, 1, expert_num]
         
         out = [] # batch_size, expert_num, embedding_size
         for i in range(self.expert_num):
