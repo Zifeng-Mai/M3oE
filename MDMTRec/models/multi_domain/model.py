@@ -240,4 +240,4 @@ class MDMTRec(nn.Module):
             for d in range(self.domain_num):
                 result[:, t] = torch.where(mask[d], output[:, t*self.domain_num+d], result[:, t])
         
-        return result, torch.stack(gate_value, dim=0).squeeze(-2)
+        return result, torch.stack(gate_value, dim=0).squeeze(-2).detach()
