@@ -193,10 +193,11 @@ class CTRTrainer(object):
 
                 # y_pred, _gate = model(x_dict)
                 y_pred, _gate = model(x_dict, test_flag=True)
-                print(_gate.shape)
-                assert False
                 y_pred = y_pred.to(self.device)
-                gate_values.append(_gate)
+                if gate_values is None:
+                    gate_values = _gate
+                else:
+                    gate_values = torch.concat([gate_values, _gate], dim=1)
                 
                 
                 for d in range(domain_num):
@@ -215,10 +216,13 @@ class CTRTrainer(object):
                     predicts.extend(y_pred.tolist())
                 else:
                     targets.extend(y.squeeze(1).tolist())
-                    predicts.extend(y_pred.squeeze(1).tolist())   
-            gate_values = pd.concat(gate_values)
-            gate_values.to_csv('gate.csv', index=False)
-            print(f'saved to gate.csv with shape of {gate_values.shape}.')
+                    predicts.extend(y_pred.squeeze(1).tolist())
+            print(gate_values.shape)
+            gate_values = gate_values.mean(dim=1)
+            print(gate_values)
+            # gate_values = pd.concat(gate_values)
+            # gate_values.to_csv('gate.csv', index=False)
+            # print(f'saved to gate.csv with shape of {gate_values.shape}.')
         logloss_list, auc_list = list(), list()
         for t in range(task_num):
             for d in range(domain_num):
