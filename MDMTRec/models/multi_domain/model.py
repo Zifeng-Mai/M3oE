@@ -213,6 +213,6 @@ class MDMTRec(nn.Module):
                 result[:, t] = torch.where(mask[d], output[:, t*self.domain_num+d], result[:, t])
         
         if test_flag:
-            return result, torch.stack(gate_value, dim=0)
+            return result, torch.stack(gate_value, dim=0).squeeze(-2).mean(dim=-2)
         else:
             return result

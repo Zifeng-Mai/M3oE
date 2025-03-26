@@ -184,7 +184,7 @@ class CTRTrainer(object):
         # [[[d0t0], [d1t0], [d2t0]], [[d0t1], [d1t1], [d2t1]]] T*D
         with torch.no_grad():
             tk0 = tqdm.tqdm(data_loader, desc="predict", smoothing=0, mininterval=1.0)
-            gate_values = list()
+            gate_values = None
             for i, (x_dict, y) in enumerate(tk0):
                 domain_mask_list = []
                 
